@@ -1,0 +1,23 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: msgateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: ms-security
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/v1/auth/**
+
+
+            - id: ms-cliente
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api/v1/customers/**
+app:
+  jwt:
+    secret: ${JWT_SECRET:bXlTdXBlclNlY3JldEtleUZvckpXVEhTMjU2QXRMZWFzdDMyQ2hhcnNMb25n}
