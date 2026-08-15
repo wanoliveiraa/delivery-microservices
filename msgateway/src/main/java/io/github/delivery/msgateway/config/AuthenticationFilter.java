@@ -40,6 +40,9 @@ public class AuthenticationFilter implements GlobalFilter {
                 return this.onError(exchange);
             }
 
+            ServerWebExchange modifiedExchange = populateRequestWithHeaders(exchange, token);
+            return chain.filter(modifiedExchange);
+
         }
         return chain.filter(exchange);
 
@@ -54,5 +57,18 @@ public class AuthenticationFilter implements GlobalFilter {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         return response.setComplete();
+    }
+
+    private ServerWebExchange populateRequestWithHeaders(ServerWebExchange exchange, String token) {
+        var email = jwtService.extractUsername(token);
+        var role = jwtService.extractRole(token);
+
+        ServerHttpRequest request = exchange.getRequest().mutate()
+                .header("X-User-Email", email)
+                .header("X-User-Role", role)
+                .build();
+
+        return exchange.mutate().request(request).build();
+
     }
 }
