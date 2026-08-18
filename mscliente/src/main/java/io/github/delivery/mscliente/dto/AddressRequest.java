@@ -3,20 +3,20 @@ package io.github.delivery.mscliente.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public record AddressRequest(
-        @NotBlank(message = "Rua é obrigatória")
+        @NotBlank(message = "Street is required")
         String street,
 
-        @NotBlank(message = "Número é obrigatório")
+        @NotBlank(message = "A number is required")
         String number,
 
-        @NotBlank(message = "Cidade é obrigatória")
+        @NotBlank(message = "City is required")
         String city,
 
-        @NotBlank(message = "Estado é obrigatório")
+        @NotBlank(message = "Status is required")
         String state,
 
         String complement,
 
-        @NotBlank(message = "CEP é obrigatório")
+        @NotBlank(message = "ZIP code is required")
         String zipCode
 ) {}

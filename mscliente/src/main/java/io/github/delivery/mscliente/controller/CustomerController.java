@@ -11,10 +11,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.UUID;
+
+import static io.github.delivery.mscliente.constants.Constants.IS_ADMIN;
 
 @RestController
 @RequestMapping("/api/v1/customers")
@@ -31,8 +34,8 @@ public class CustomerController {
             @ApiResponse(responseCode = "409", description = "userId já cadastrado")
     })
     @PostMapping
-    public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CustomerRequest request) {
-        var created = customerService.createCustomer(request);
+    public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CustomerRequest request, @RequestHeader("X-User-Id") String userId) {
+        var created = customerService.createCustomer(request,UUID.fromString(userId));
         var location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
@@ -54,7 +57,7 @@ public class CustomerController {
         var updated = customerService.updateCustomer(id, request);
         return ResponseEntity.ok(updated);
     }
-
+    @PreAuthorize(IS_ADMIN)
     @Operation(summary = "Lista clientes de forma paginada")
     @GetMapping
     public Page<CustomerResponse> findAll(Pageable pageable) {
@@ -94,6 +97,7 @@ public class CustomerController {
         return ResponseEntity.ok(customer);
     }
 
+    @PreAuthorize(IS_ADMIN)
     @Operation(summary = "Remove um cliente permanentemente (hard delete)",
             description = "Apaga o cliente e seus dados definitivamente do banco")
     @DeleteMapping("/permanent/{id}")

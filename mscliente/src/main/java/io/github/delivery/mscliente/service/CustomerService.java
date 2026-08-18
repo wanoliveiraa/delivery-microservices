@@ -27,12 +27,13 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
 
-    public CustomerResponse createCustomer(CustomerRequest customerRequest) {
+    public CustomerResponse createCustomer(CustomerRequest customerRequest,UUID userId) {
 
-        if (customerRepository.existsByUserId(customerRequest.userId())) {
-            throw new CustomerAlreadyExistsException(customerRequest.userId());
+        if (customerRepository.existsByUserId(userId)) {
+            throw new CustomerAlreadyExistsException(userId);
         }
         var customer = customerMapper.toCustomer(customerRequest);
+        customer.setUserId(userId);
 
         syncAddresses(customer, customerRequest);
         syncDocuments(customer, customerRequest);
@@ -42,7 +43,7 @@ public class CustomerService {
         return customerMapper.toResponse(savedCustomer);
 
     }
-
+    
     public CustomerResponse getCustomerByUserId(UUID userId) {
         var customer = customerRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomerNotFoundException(userId));

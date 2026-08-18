@@ -1,4 +1,4 @@
-package io.github.delivery.mssecurity.constants;
+package io.github.delivery.mscliente.constants;
 
 public class Constants {
 
@@ -6,5 +6,7 @@ public class Constants {
     }
 
     public static final String ROLE_PREFIX = "ROLE_";
+
+    public static final String IS_ADMIN = "hasRole('ADMIN')";
 
 }

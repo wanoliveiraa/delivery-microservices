@@ -62,10 +62,12 @@ public class AuthenticationFilter implements GlobalFilter {
     private ServerWebExchange populateRequestWithHeaders(ServerWebExchange exchange, String token) {
         var email = jwtService.extractUsername(token);
         var role = jwtService.extractRole(token);
+        var id = jwtService.extractId(token);
 
         ServerHttpRequest request = exchange.getRequest().mutate()
                 .header("X-User-Email", email)
                 .header("X-User-Role", role)
+                .header("X-User-Id", id)
                 .build();
 
         return exchange.mutate().request(request).build();

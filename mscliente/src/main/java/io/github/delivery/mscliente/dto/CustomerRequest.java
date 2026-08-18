@@ -9,15 +9,12 @@ import java.util.List;
 import java.util.UUID;
 
 public record CustomerRequest(
-        @NotNull(message = "ID do usuário é obrigatório")
-        UUID userId,
-
-        @NotBlank(message = "Nome é obrigatório")
+        @NotBlank(message = "Name is required")
         String name,
 
         String phone,
 
-        @NotNull(message = "Tipo de pessoa é obrigatório")
+        @NotNull(message = "Person type is required")
         PersonType personType,
 
         List< @Valid DocumentRequest> documents,

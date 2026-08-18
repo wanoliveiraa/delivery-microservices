@@ -5,9 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record DocumentRequest(
-        @NotNull(message = "Tipo de documento é obrigatório")
+        @NotNull(message = "Document type is required")
         DocumentType type,
 
-        @NotBlank(message = "Valor do documento é obrigatório")
+        @NotBlank(message = "The document value is required")
         String value
 ) {}

@@ -6,6 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class JwtServiceTest {
@@ -22,6 +24,7 @@ class JwtServiceTest {
         ReflectionTestUtils.setField(jwtService, "jwtExpirationMs", 86400000L);
 
         user = User.builder()
+                .id(UUID.randomUUID())
                 .email("teste@teste.com")
                 .role(Role.CLIENT)
                 .build();
@@ -54,6 +57,7 @@ class JwtServiceTest {
         String token = jwtService.generateToken(user);
 
         var auxUser = User.builder()
+                .id(UUID.randomUUID())
                 .email("outro@teste.com")
                 .role(Role.CLIENT)
                 .build();

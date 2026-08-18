@@ -42,6 +42,10 @@ public class JwtService {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
+    public String extractId(String token) {
+        return extractClaim(token, claims -> claims.get("id", String.class));
+    }
+
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         Claims claims = Jwts.parser()
                 .verifyWith(getSigningKey())
