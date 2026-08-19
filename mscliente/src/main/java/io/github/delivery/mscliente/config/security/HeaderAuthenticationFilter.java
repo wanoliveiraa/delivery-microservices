@@ -37,4 +37,5 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
 }

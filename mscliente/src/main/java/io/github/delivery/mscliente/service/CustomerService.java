@@ -6,19 +6,21 @@ import io.github.delivery.mscliente.exception.CustomerAlreadyExistsException;
 import io.github.delivery.mscliente.exception.CustomerNotFoundException;
 import io.github.delivery.mscliente.exception.DocumentNotFoundException;
 import io.github.delivery.mscliente.mapper.CustomerMapper;
-import io.github.delivery.mscliente.model.Address;
 import io.github.delivery.mscliente.model.Customer;
-import io.github.delivery.mscliente.model.Document;
 import io.github.delivery.mscliente.repository.CustomerRepository;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import static io.github.delivery.mscliente.constants.Constants.ROLE_ADMIN;
+import static io.github.delivery.mscliente.constants.Constants.ROLE_PREFIX;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +50,8 @@ public class CustomerService {
         var customer = customerRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomerNotFoundException(userId));
 
+        validateAccess(customer.getUserId());
+
         return customerMapper.toResponse(customer);
     }
 
@@ -61,6 +65,8 @@ public class CustomerService {
     public CustomerResponse getCustomerDetailsById(UUID id) {
         var customer = customerRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
+
+        validateAccess(customer.getUserId());
 
         return customerMapper.toResponse(customer);
     }
@@ -78,6 +84,7 @@ public class CustomerService {
         var customer = customerRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
 
+        validateAccess(customer.getUserId());
 
         customerMapper.updateEntityFromRequest(customerRequest, customer);
 
@@ -124,10 +131,22 @@ public class CustomerService {
         var customer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
 
+        validateAccess(customer.getUserId());
+
         customer.setDeletedAt(LocalDateTime.now());
         customerRepository.save(customer);
     }
 
+    private void validateAccess (UUID customerUserId){
 
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        String loggedUserId = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(ROLE_PREFIX + ROLE_ADMIN));
+
+        if(!isAdmin && !loggedUserId.equals(customerUserId.toString())){
+            throw new AccessDeniedException("You do not have permission to access this resource");
+        }
+    }
 
 }

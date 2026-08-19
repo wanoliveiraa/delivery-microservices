@@ -56,7 +56,7 @@ public class CustomerController {
         var updated = customerService.updateCustomer(id, request);
         return ResponseEntity.ok(updated);
     }
-    @PreAuthorize(Constants.ADMIN)
+    @PreAuthorize(Constants.IS_ADMIN)
     @Operation(summary = "Lista clientes de forma paginada")
     @GetMapping
     public Page<CustomerResponse> findAll(Pageable pageable) {
@@ -85,6 +85,7 @@ public class CustomerController {
         return ResponseEntity.ok(customer);
     }
 
+    @PreAuthorize(Constants.IS_ADMIN)
     @Operation(summary = "Busca um cliente por documento")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Cliente encontrado"),
@@ -96,7 +97,7 @@ public class CustomerController {
         return ResponseEntity.ok(customer);
     }
 
-    @PreAuthorize(Constants.ADMIN)
+    @PreAuthorize(Constants.IS_ADMIN)
     @Operation(summary = "Remove um cliente permanentemente (hard delete)",
             description = "Apaga o cliente e seus dados definitivamente do banco")
     @DeleteMapping("/permanent/{id}")

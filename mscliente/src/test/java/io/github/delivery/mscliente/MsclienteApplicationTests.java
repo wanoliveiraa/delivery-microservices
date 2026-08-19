@@ -18,8 +18,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

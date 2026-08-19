@@ -13,15 +13,16 @@ import java.util.UUID;
 
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
-    Optional<Customer> findByUserId(UUID userId);
-
     boolean existsByUserId(UUID userId);
 
+    @EntityGraph(attributePaths = {"addresses", "documents"})
     Optional<Customer> findByDocumentsValue(String value);
 
     @EntityGraph(attributePaths = {"addresses", "documents"})
     Page<Customer> findAll(Pageable pageable);
 
+    @EntityGraph(attributePaths = {"addresses", "documents"})
+    Optional<Customer> findByUserId(UUID userId);
     @Query("""
         SELECT DISTINCT c
         FROM Customer c

@@ -9,10 +9,7 @@ import io.github.delivery.mscliente.repository.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.IOException;
@@ -23,8 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 class CustomerControllerTest extends MsclienteApplicationTests {
 
     @Autowired
@@ -39,7 +34,6 @@ class CustomerControllerTest extends MsclienteApplicationTests {
     }
 
     @Test
-    @WithMockUser
     void createCustomerSuccessfully() throws Exception {
 
         UUID userId = UUID.randomUUID();
@@ -48,8 +42,9 @@ class CustomerControllerTest extends MsclienteApplicationTests {
                 post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", "CLIENT")
                         .content(objectMapper.writeValueAsString(customer))
-        )       .andDo(print())
+        )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.userId").value(userId.toString()))
@@ -66,7 +61,6 @@ class CustomerControllerTest extends MsclienteApplicationTests {
     }
 
     @Test
-    @WithMockUser
     void updateCustomerSuccessfully() throws Exception {
 
         UUID userId = UUID.randomUUID();
@@ -75,6 +69,7 @@ class CustomerControllerTest extends MsclienteApplicationTests {
                 post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_CLIENT)
                         .content(objectMapper.writeValueAsString(customer))
         )
                 .andExpect(status().isCreated())
@@ -88,9 +83,10 @@ class CustomerControllerTest extends MsclienteApplicationTests {
         doRequest(
                 put("/api/v1/customers/" + created.id())
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_CLIENT)
                         .content(objectMapper.writeValueAsString(customer))
         )
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(created.id().toString()))
                 .andExpect(jsonPath("$.userId").value(userId.toString()))
@@ -106,13 +102,13 @@ class CustomerControllerTest extends MsclienteApplicationTests {
     }
 
     @Test
-    @WithMockUser(roles = Constants.IS_ADMIN)
     void findAllCustomerSuccessfully() throws Exception {
 
         doRequest(
                 post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", UUID.randomUUID().toString())
+                        .header("X-User-Role", Constants.ROLE_ADMIN)
                         .content(objectMapper.writeValueAsString(customer))
         )
                 .andExpect(status().isCreated());
@@ -121,8 +117,10 @@ class CustomerControllerTest extends MsclienteApplicationTests {
         doRequest(
                 get("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", UUID.randomUUID().toString())
+                        .header("X-User-Role", Constants.ROLE_ADMIN)
                         .content(objectMapper.writeValueAsString(customer))
-        )       .andDo(print())
+        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content.length()").value(1))
@@ -146,7 +144,6 @@ class CustomerControllerTest extends MsclienteApplicationTests {
 
 
     @Test
-    @WithMockUser()
     void findCustomerIdSuccessfully () throws Exception {
 
         UUID userId = UUID.randomUUID();
@@ -155,6 +152,7 @@ class CustomerControllerTest extends MsclienteApplicationTests {
                 post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", "CLIENT")
                         .content(objectMapper.writeValueAsString(customer))
         )
                 .andExpect(status().isCreated())
@@ -170,6 +168,8 @@ class CustomerControllerTest extends MsclienteApplicationTests {
 
         doRequest(
                 get("/api/v1/customers/" + customerId)
+                        .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", "CLIENT")
                         .contentType(MediaType.APPLICATION_JSON)
         )
                 .andDo(print())
@@ -188,23 +188,33 @@ class CustomerControllerTest extends MsclienteApplicationTests {
     }
 
     @Test
-    @WithMockUser
     void findCustomerByUserIdSuccessfully() throws Exception {
 
         UUID userId = UUID.randomUUID();
 
-        doRequest(
+        MvcResult result = doRequest(
                 post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_CLIENT)
                         .content(objectMapper.writeValueAsString(customer))
         )
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        CustomerResponse created =
+                objectMapper.readValue(
+                        result.getResponse().getContentAsString(),
+                        CustomerResponse.class
+                );
+
 
         doRequest(
-                get("/api/v1/customers/user/" + userId)
+                get("/api/v1/customers/user/" + created.userId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_CLIENT)
         )
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.userId").value(userId.toString()))
@@ -218,21 +228,31 @@ class CustomerControllerTest extends MsclienteApplicationTests {
     }
 
     @Test
-    @WithMockUser
     void findCustomerByDocumentSuccessfully() throws Exception {
 
         UUID userId = UUID.randomUUID();
 
-        doRequest(
+        MvcResult result = doRequest(
                 post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_CLIENT)
                         .content(objectMapper.writeValueAsString(customer))
         )
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        CustomerResponse created =
+                objectMapper.readValue(
+                        result.getResponse().getContentAsString(),
+                        CustomerResponse.class
+                );
+
 
         doRequest(
                 get("/api/v1/customers/document/98765432100")
+                        .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_ADMIN)
         )
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -246,7 +266,6 @@ class CustomerControllerTest extends MsclienteApplicationTests {
     }
 
     @Test
-    @WithMockUser(roles = Constants.IS_ADMIN)
     void deleteCustomerSuccessfully() throws Exception {
 
         UUID userId = UUID.randomUUID();
@@ -255,6 +274,7 @@ class CustomerControllerTest extends MsclienteApplicationTests {
                 post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_ADMIN)
                         .content(objectMapper.writeValueAsString(customer))
         )
                 .andExpect(status().isCreated())
@@ -267,18 +287,21 @@ class CustomerControllerTest extends MsclienteApplicationTests {
 
         doRequest(
                 delete("/api/v1/customers/permanent/" + created.id())
+                        .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_ADMIN)
         )
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
         doRequest(
                 get("/api/v1/customers/" + created.id())
+                        .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_ADMIN)
         )
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser
     void deleteCustomerSoftSuccessfully() throws Exception {
 
         UUID userId = UUID.randomUUID();
@@ -287,6 +310,7 @@ class CustomerControllerTest extends MsclienteApplicationTests {
                 post("/api/v1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_ADMIN)
                         .content(objectMapper.writeValueAsString(customer))
         )
                 .andExpect(status().isCreated())
@@ -299,46 +323,55 @@ class CustomerControllerTest extends MsclienteApplicationTests {
 
         doRequest(
                 delete("/api/v1/customers/" + created.id())
+                        .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_ADMIN)
         )
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
         doRequest(
                 get("/api/v1/customers/" + created.id())
+                        .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_ADMIN)
         )
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(roles = "USER")
     void findAllCustomerWithoutAdminRole() throws Exception {
+
+        UUID userId = UUID.randomUUID();
 
         doRequest(
                 get("/api/v1/customers")
+                        .header("X-User-Id", userId.toString())
+                        .header("X-User-Role", Constants.ROLE_CLIENT)
         )
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser(roles = "CLIENT")
     void deleteCustomerPermanentWithoutAdminRole() throws Exception {
 
         UUID id = UUID.randomUUID();
 
         doRequest(
                 delete("/api/v1/customers/permanent/" + id)
+                        .header("X-User-Id", UUID.randomUUID().toString())
+                        .header("X-User-Role", Constants.ROLE_CLIENT)
         )
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser
     void findCustomerByIdNotFound() throws Exception {
 
         UUID id = UUID.randomUUID();
 
         doRequest(
                 get("/api/v1/customers/" + id)
+                        .header("X-User-Id", UUID.randomUUID().toString())
+                        .header("X-User-Role", Constants.ROLE_CLIENT)
         )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))

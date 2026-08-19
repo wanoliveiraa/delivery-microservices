@@ -6,8 +6,8 @@ public class Constants {
     }
 
     public static final String ROLE_PREFIX = "ROLE_";
-    public static final String ADMIN = "hasRole('ADMIN')";
-
-    public static final String IS_ADMIN = "ADMIN";
+    public static final String ROLE_ADMIN = "ADMIN";
+    public static final String ROLE_CLIENT = "CLIENT";
+    public static final String IS_ADMIN = "hasRole('ADMIN')";
 
 }
