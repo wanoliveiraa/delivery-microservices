@@ -112,7 +112,6 @@ class AuthServiceTest {
     void loginInvalidCredentials() {
         var request = new LoginRequestDTO("login@teste.com", "SenhaErrada");
 
-        // o authenticate LANÇA exceção (credenciais inválidas)
         when(authenticationManager.authenticate(any()))
                 .thenThrow(new BadCredentialsException("Invalid credentials"));
 
