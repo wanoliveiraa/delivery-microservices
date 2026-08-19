@@ -1,5 +1,6 @@
 package io.github.delivery.mscliente.controller;
 
+import io.github.delivery.mscliente.constants.Constants;
 import io.github.delivery.mscliente.dto.CustomerRequest;
 import io.github.delivery.mscliente.dto.CustomerResponse;
 import io.github.delivery.mscliente.service.CustomerService;
@@ -16,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.UUID;
-
-import static io.github.delivery.mscliente.constants.Constants.IS_ADMIN;
 
 @RestController
 @RequestMapping("/api/v1/customers")
@@ -57,7 +56,7 @@ public class CustomerController {
         var updated = customerService.updateCustomer(id, request);
         return ResponseEntity.ok(updated);
     }
-    @PreAuthorize(IS_ADMIN)
+    @PreAuthorize(Constants.ADMIN)
     @Operation(summary = "Lista clientes de forma paginada")
     @GetMapping
     public Page<CustomerResponse> findAll(Pageable pageable) {
@@ -97,7 +96,7 @@ public class CustomerController {
         return ResponseEntity.ok(customer);
     }
 
-    @PreAuthorize(IS_ADMIN)
+    @PreAuthorize(Constants.ADMIN)
     @Operation(summary = "Remove um cliente permanentemente (hard delete)",
             description = "Apaga o cliente e seus dados definitivamente do banco")
     @DeleteMapping("/permanent/{id}")

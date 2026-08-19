@@ -1,0 +1,27 @@
+{
+  "name": "Cliente Teste",
+  "phone": "98999999999",
+  "personType": "Pessoa Física",
+  "addresses": [
+    {
+      "street": "Avenida Litorânea",
+      "number": "500",
+      "city": "São Luís",
+      "state": "MA",
+      "zipCode": "65075000"
+    },
+    {
+      "street": "Rua do Sol",
+      "number": "42",
+      "city": "São Luís",
+      "state": "MA",
+      "zipCode": "65010000"
+    }
+  ],
+  "documents": [
+    {
+      "type": "CPF",
+      "value": "98765432100"
+    }
+  ]
+}
